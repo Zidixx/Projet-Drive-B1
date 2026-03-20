@@ -3,10 +3,34 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg?v=2">
   <title>Mon Drive – Drive Sécurisé</title>
   <style>
+    :root {
+      --app-bg: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%);
+      --text-primary: #202124;
+      --text-secondary: #5f6368;
+      --panel-bg: rgba(255, 255, 255, 0.5);
+      --panel-border: rgba(255, 255, 255, 0.6);
+      --card-bg: rgba(255, 255, 255, 0.85);
+      --card-border: rgba(255, 255, 255, 0.9);
+      --hover-bg: rgba(241, 243, 244, 0.85);
+      --table-head-bg: #f8f9fa;
+      --table-row-hover: #f8f9fa;
+    }
+
     * { box-sizing: border-box; }
-    body { margin: 0; font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 50%, #f8fafc 100%); color: #3c4043; min-height: 100vh; }
+    body {
+      margin: 0;
+      font-family: 'Google Sans', 'Segoe UI', system-ui, sans-serif;
+      background: var(--app-bg);
+      color: var(--text-primary);
+      min-height: 100vh;
+      transition: background 220ms ease, color 220ms ease;
+    }
+    body * {
+      transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease, box-shadow 220ms ease;
+    }
     a { color: #1a73e8; text-decoration: none; }
     a:hover { text-decoration: underline; }
 
@@ -20,6 +44,10 @@
       -webkit-backdrop-filter: blur(20px);
       border-bottom: 1px solid rgba(255, 255, 255, 0.6);
       box-shadow: 0 2px 16px rgba(0, 0, 0, 0.04);
+      position: sticky;
+      top: 0;
+      z-index: 1500;
+      overflow: visible;
     }
     .logo {
       display: flex;
@@ -52,6 +80,9 @@
       display: flex;
       align-items: center;
       gap: 8px;
+      margin-left: auto;
+      position: relative;
+      z-index: 1600;
     }
     .header-icons button, .header-icons a {
       width: 40px; height: 40px;
@@ -64,8 +95,8 @@
       align-items: center;
       justify-content: center;
     }
-    .header-icons button:hover, .header-icons a:hover { background: rgba(241,243,244,0.8); color: #202124; }
-    .header-icon-wrap { position: relative; }
+    .header-icons button:hover, .header-icons a:hover { background: var(--hover-bg); color: var(--text-primary); }
+    .header-icon-wrap { position: relative; z-index: 1700; }
     .header-icon-wrap .header-btn {
       width: 40px; height: 40px;
       border: none;
@@ -77,14 +108,14 @@
       align-items: center;
       justify-content: center;
     }
-    .header-icon-wrap .header-btn:hover { background: rgba(241,243,244,0.8); color: #202124; }
+    .header-icon-wrap .header-btn:hover { background: var(--hover-bg); color: var(--text-primary); }
     .header-icon-wrap .header-btn svg { width: 22px; height: 22px; }
     .header-dropdown {
       display: none;
       position: absolute;
       top: 100%;
       right: 0;
-      margin-top: 8px;
+      margin-top: 10px;
       min-width: 200px;
       background: rgba(255, 255, 255, 0.92);
       backdrop-filter: blur(20px);
@@ -92,7 +123,7 @@
       border: 1px solid rgba(255, 255, 255, 0.9);
       border-radius: 12px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-      z-index: 200;
+      z-index: 3000;
       padding: 8px 0;
     }
     .header-dropdown.open { display: block; }
@@ -108,9 +139,10 @@
     .header-dropdown .dropdown-item {
       display: flex;
       align-items: center;
+      justify-content: flex-start;
       gap: 12px;
       width: 100%;
-      padding: 10px 16px;
+      padding: 11px 16px;
       border: none;
       background: none;
       cursor: pointer;
@@ -118,21 +150,51 @@
       color: #3c4043;
       text-align: left;
       border-radius: 0;
+      margin: 0;
+      line-height: 1.2;
+      white-space: nowrap;
     }
-    .header-dropdown .dropdown-item:hover { background: rgba(241, 243, 244, 0.9); }
-    .header-dropdown .dropdown-item svg { width: 20px; height: 20px; color: #5f6368; flex-shrink: 0; }
+    .header-dropdown .dropdown-item:hover { background: var(--hover-bg); }
+    .header-dropdown .dropdown-item svg {
+      width: 20px;
+      height: 20px;
+      color: #5f6368;
+      flex: 0 0 20px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
     .header-dropdown .dropdown-item.danger:hover { background: rgba(211, 47, 47, 0.08); color: #d32f2f; }
     .header-dropdown .dropdown-item.danger svg { color: #d32f2f; }
     .header-dropdown .profile-info {
       padding: 16px;
       border-bottom: 1px solid rgba(0,0,0,0.06);
     }
-    .header-dropdown .profile-info .profile-email { font-size: 0.95rem; font-weight: 500; color: #202124; word-break: break-all; }
+    .header-dropdown .profile-info .profile-email {
+      font-size: 0.95rem;
+      font-weight: 500;
+      color: #202124;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .header-dropdown .profile-info .profile-role { font-size: 0.8rem; color: #5f6368; margin-top: 2px; }
     .avatar { width: 36px; height: 36px; border-radius: 50%; background: #1a73e8; color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 1rem; cursor: pointer; flex-shrink: 0; }
     .avatar:hover { filter: brightness(1.05); }
     .badge-admin { display: none; align-items: center; padding: 4px 10px; background: #e8f0fe; color: #1a73e8; border-radius: 12px; font-size: 0.8rem; font-weight: 500; margin-right: 8px; }
     .badge-confidential { font-size: 0.75rem; color: #d93025; margin-left: 6px; }
+    .badge-protected {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-left: 6px;
+      padding: 1px 7px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #1f4fb8;
+      background: rgba(26, 115, 232, 0.14);
+    }
     .btn-delete { background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 1rem; opacity: 0.7; }
     .btn-delete:hover { opacity: 1; }
     .btn-restore, .btn-delete-permanent { background: none; border: none; cursor: pointer; padding: 2px 6px; font-size: 1rem; margin-left: 4px; }
@@ -141,7 +203,7 @@
 
     .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; align-items: center; justify-content: center; padding: 24px; }
     .modal.open { display: flex; }
-    .modal-content { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; max-width: 420px; width: 100%; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.8); }
+    .modal-content { background: rgba(255, 255, 255, 0.9); backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px); border-radius: 16px; max-width: 720px; width: 100%; padding: 24px; box-shadow: 0 8px 32px rgba(0,0,0,0.12); border: 1px solid rgba(255,255,255,0.8); max-height: 85vh; overflow: auto; }
     .modal h2 { margin: 0 0 20px 0; font-size: 1.25rem; font-weight: 500; color: #202124; }
     .modal .section { margin-bottom: 24px; }
     .modal .section:last-child { margin-bottom: 0; }
@@ -153,6 +215,29 @@
     .modal .code-display { margin-top: 12px; padding: 12px; background: #e8f0fe; border-radius: 8px; font-size: 1.25rem; font-weight: 600; letter-spacing: 4px; text-align: center; color: #1a73e8; }
     .modal .msg { margin-top: 8px; font-size: 0.9rem; color: #5f6368; }
     .modal .error { color: #d93025; }
+    .settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .settings-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+    .settings-tab {
+      border: 1px solid #dadce0;
+      border-radius: 999px;
+      background: #fff;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 0.88rem;
+    }
+    .settings-tab.active { background: #e8f0fe; color: #1a73e8; border-color: #c7dbff; }
+    .settings-section { display: none; }
+    .settings-section.open { display: block; }
+    .settings-card { background: rgba(255,255,255,0.65); border: 1px solid rgba(255,255,255,0.85); border-radius: 12px; padding: 14px; }
+    .settings-card h3 { margin: 0 0 10px 0; font-size: 1rem; }
+    .settings-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .settings-row button, .settings-row select { border: 1px solid #dadce0; border-radius: 8px; background: #fff; padding: 8px 10px; }
+    .org-list { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+    .org-item { border: 1px solid #dadce0; border-radius: 10px; padding: 10px; background: rgba(255,255,255,0.8); }
+    .org-item-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+    .org-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .org-actions button { border: 1px solid #dadce0; border-radius: 8px; background: #fff; padding: 6px 10px; cursor: pointer; }
+    .org-members { margin-top: 8px; font-size: 0.85rem; color: #5f6368; }
     .no-org-banner { background: #fef7e0; border: 1px solid #f9ab00; border-radius: 8px; padding: 16px 24px; margin-bottom: 24px; color: #3c4043; }
     .no-org-banner strong { display: block; margin-bottom: 4px; }
 
@@ -161,10 +246,10 @@
       width: 280px;
       padding: 24px 16px;
       flex-shrink: 0;
-      background: rgba(255, 255, 255, 0.4);
+      background: var(--panel-bg);
       backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
-      border-right: 1px solid rgba(255, 255, 255, 0.6);
+      border-right: 1px solid var(--panel-border);
       box-shadow: 2px 0 24px rgba(0, 0, 0, 0.04);
     }
     .sidebar .btn-new {
@@ -227,7 +312,7 @@
       margin: 0 6px;
       width: calc(100% - 12px);
     }
-    .dropdown-item:hover { background: rgba(241, 243, 244, 0.8); }
+    .dropdown-item:hover { background: var(--hover-bg); }
     .dropdown-item:first-of-type { margin-top: 4px; }
     .dropdown-item svg { width: 22px; height: 22px; color: #5f6368; flex-shrink: 0; }
     .dropdown-item span { flex: 1; white-space: nowrap; }
@@ -247,7 +332,7 @@
       border-radius: 24px;
       transition: background 0.2s, color 0.2s;
     }
-    .nav-item:hover { background: rgba(241, 243, 244, 0.7); }
+    .nav-item:hover { background: var(--hover-bg); }
     .nav-item.active {
       background: rgba(232, 240, 254, 0.9);
       backdrop-filter: blur(12px);
@@ -257,6 +342,24 @@
     }
     .nav-item.active svg { color: #1a73e8; }
     .nav-item svg { width: 22px; height: 22px; flex-shrink: 0; color: #5f6368; }
+    .org-nav-list { margin: 4px 0 8px; padding-left: 12px; }
+    .org-nav-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: calc(100% - 16px);
+      margin: 2px 8px;
+      border: none;
+      background: none;
+      border-radius: 20px;
+      padding: 8px 14px;
+      cursor: pointer;
+      color: #3c4043;
+      text-align: left;
+      font-size: 0.9rem;
+    }
+    .org-nav-item.active { background: rgba(232,240,254,0.85); color: #1a73e8; font-weight: 500; }
+    .org-nav-item:hover { background: rgba(241,243,244,0.7); }
     .storage {
       margin: 24px 8px 0;
       padding: 16px;
@@ -314,12 +417,12 @@
       font-size: 0.8rem;
       font-weight: 500;
       color: #5f6368;
-      background: #f8f9fa;
+      background: var(--table-head-bg);
       border-bottom: 1px solid #dadce0;
     }
     th:first-child { width: 40%; }
     td { padding: 12px 16px; border-bottom: 1px solid #f1f3f4; font-size: 0.9rem; }
-    tr:hover { background: #f8f9fa; }
+    tr:hover { background: var(--table-row-hover); }
     tr:last-child td { border-bottom: none; }
     .cell-name { display: flex; align-items: center; gap: 12px; }
     .cell-name .icon { width: 24px; height: 24px; color: #5f6368; flex-shrink: 0; }
@@ -328,6 +431,157 @@
     .cell-name .file-link:hover { text-decoration: underline; }
     .empty { text-align: center; padding: 48px 24px; color: #5f6368; }
     .empty p { margin: 0 0 16px 0; }
+    .org-page { display: none; }
+    .org-page.open { display: block; }
+    .org-page-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+    }
+    .org-card {
+      border: 1px solid rgba(218, 220, 224, 0.7);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.65);
+      padding: 14px;
+    }
+    .org-card h3 { margin: 0 0 10px 0; font-size: 1rem; }
+    .org-line { margin: 6px 0; color: var(--text-secondary); }
+    .members-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+    .members-table th, .members-table td { padding: 8px; border-bottom: 1px solid rgba(218,220,224,0.6); text-align: left; font-size: 0.9rem; }
+    .member-cell { display: flex; align-items: center; gap: 8px; }
+    .member-avatar { width: 24px; height: 24px; border-radius: 50%; background: #1a73e8; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+    .role-badge { display: inline-block; padding: 3px 8px; border-radius: 999px; font-size: 0.75rem; background: rgba(26,115,232,0.15); color: #1a73e8; }
+    .org-actions-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .org-actions-row input, .org-actions-row select, .org-actions-row button {
+      border: 1px solid #dadce0;
+      border-radius: 8px;
+      padding: 8px 10px;
+      background: #fff;
+    }
+    .org-actions-row .danger { border-color: #ef9a9a; color: #c62828; }
+    .context-menu {
+      position: fixed;
+      display: none;
+      width: max-content;
+      max-width: min(220px, calc(100vw - 16px));
+      background: rgba(255, 255, 255, 0.55);
+      backdrop-filter: blur(18px) saturate(1.4);
+      -webkit-backdrop-filter: blur(18px) saturate(1.4);
+      border: 1px solid rgba(255, 255, 255, 0.65);
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(0, 0, 0, 0.04);
+      z-index: 5000;
+      padding: 4px 0;
+    }
+    .context-menu.open { display: block; }
+    .context-menu button {
+      width: 100%;
+      border: none;
+      background: none;
+      padding: 6px 12px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.01em;
+      line-height: 1.25;
+      color: var(--text-primary);
+      white-space: nowrap;
+    }
+    .context-menu button:hover {
+      background: rgba(255, 255, 255, 0.45);
+    }
+    .context-menu button.hidden { display: none; }
+    .context-menu .separator {
+      height: 1px;
+      margin: 4px 8px;
+      background: rgba(0, 0, 0, 0.08);
+    }
+    .context-menu .separator.hidden { display: none; }
+
+    body.dark {
+      --app-bg: linear-gradient(135deg, #0d1117 0%, #101826 50%, #0f141f 100%);
+      --text-primary: #e6edf3;
+      --text-secondary: #9aa7b2;
+      --panel-bg: rgba(17, 24, 39, 0.65);
+      --panel-border: rgba(71, 85, 105, 0.45);
+      --card-bg: rgba(15, 23, 42, 0.86);
+      --card-border: rgba(71, 85, 105, 0.55);
+      --hover-bg: rgba(71, 85, 105, 0.28);
+      --table-head-bg: rgba(30, 41, 59, 0.72);
+      --table-row-hover: rgba(51, 65, 85, 0.35);
+    }
+    body.dark .header { background: rgba(15, 23, 42, 0.7); border-bottom-color: rgba(71, 85, 105, 0.4); }
+    body.dark .search { background: rgba(30, 41, 59, 0.7); }
+    body.dark .search input { color: #e6edf3; }
+    body.dark .search input::placeholder { color: #94a3b8; }
+    body.dark .header-dropdown,
+    body.dark .dropdown-menu,
+    body.dark .modal-content,
+    body.dark .settings-card,
+    body.dark .table-wrap,
+    body.dark .storage {
+      background: var(--card-bg);
+      border-color: var(--card-border);
+      color: var(--text-primary);
+    }
+    body.dark .nav-item,
+    body.dark .dropdown-item,
+    body.dark .header-dropdown .dropdown-item,
+    body.dark td,
+    body.dark th,
+    body.dark .main h1,
+    body.dark .logo span,
+    body.dark .org-members,
+    body.dark .msg,
+    body.dark .cell-name span {
+      color: var(--text-primary);
+    }
+    body.dark .toolbar button,
+    body.dark .settings-row button,
+    body.dark .org-actions button,
+    body.dark .settings-row select {
+      background: rgba(30, 41, 59, 0.8);
+      color: #e6edf3;
+      border-color: rgba(71, 85, 105, 0.6);
+    }
+    body.dark .modal input,
+    body.dark .settings-row input,
+    body.dark .settings-row select {
+      background: rgba(30, 41, 59, 0.72);
+      color: #e6edf3;
+      border-color: rgba(71, 85, 105, 0.6);
+    }
+    body.dark .no-org-banner {
+      background: rgba(120, 53, 15, 0.28);
+      border-color: rgba(245, 158, 11, 0.6);
+      color: #fcd34d;
+    }
+    body.dark .header-dropdown .dropdown-item.danger:hover { background: rgba(220, 38, 38, 0.22); color: #fca5a5; }
+    body.dark .header-dropdown .dropdown-item.danger svg { color: #fca5a5; }
+    body.dark .org-card { background: rgba(15, 23, 42, 0.86); border-color: rgba(71, 85, 105, 0.55); }
+    body.dark .members-table th, body.dark .members-table td { border-bottom-color: rgba(71,85,105,0.5); }
+    body.dark .org-actions-row input, body.dark .org-actions-row select, body.dark .org-actions-row button { background: rgba(30,41,59,0.75); color: #e6edf3; border-color: rgba(71,85,105,0.6); }
+    body.dark .context-menu {
+      background: rgba(15, 23, 42, 0.55);
+      border-color: rgba(148, 163, 184, 0.25);
+      box-shadow: 0 8px 28px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(255, 255, 255, 0.06);
+    }
+    body.dark .context-menu button:hover { background: rgba(255, 255, 255, 0.08); }
+    body.dark .context-menu .separator { background: rgba(148, 163, 184, 0.25); }
+    body.dark .badge-protected { background: rgba(59, 130, 246, 0.22); color: #bfdbfe; }
+
+    body.no-glass .header,
+    body.no-glass .sidebar,
+    body.no-glass .main,
+    body.no-glass .header-dropdown,
+    body.no-glass .dropdown-menu,
+    body.no-glass .table-wrap,
+    body.no-glass .modal-content,
+    body.no-glass .storage {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
   </style>
 </head>
 <body>
@@ -347,9 +601,25 @@
         </button>
         <div class="header-dropdown" id="settingsDropdown">
           <div class="dropdown-title">Paramètres</div>
+          <button type="button" class="dropdown-item" id="menuSettingsGeneral">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+            Paramètres généraux
+          </button>
+          <button type="button" class="dropdown-item" id="menuSettingsAppearance">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3a9 9 0 000 18 9 9 0 100-18zm0 16a7 7 0 010-14v14z"/></svg>
+            Apparence
+          </button>
+          <button type="button" class="dropdown-item" id="menuSettingsNotifications">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22zm6-6V11a6 6 0 10-12 0v5L4 18v1h16v-1l-2-2z"/></svg>
+            Notifications
+          </button>
           <button type="button" class="dropdown-item" id="menuSettingsOrg">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
-            Organisation
+            Organisations
+          </button>
+          <button type="button" class="dropdown-item danger" id="menuSettingsLogout">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
+            Déconnexion
           </button>
         </div>
       </div>
@@ -360,9 +630,21 @@
             <div class="profile-email" id="profileEmail">—</div>
             <div class="profile-role" id="profileRole"></div>
           </div>
+          <button type="button" class="dropdown-item" id="menuMonProfil">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12a5 5 0 100-10 5 5 0 000 10zm0 2c-4.42 0-8 2-8 4.5V21h16v-2.5C20 16 16.42 14 12 14z"/></svg>
+            Mon profil
+          </button>
           <button type="button" class="dropdown-item" id="menuProfileOrg">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 7V3H2v18h20V7H12zM6 19H4v-2h2v2zm0-4H4v-2h2v2zm0-4H4V9h2v2zm0-4H4V5h2v2zm4 12H8v-2h2v2zm0-4H8v-2h2v2zm0-4H8V9h2v2zm0-4H8V5h2v2zm10 12h-8v-2h2v-2h-2v-2h2v-2h-2V9h8v10zm-2-8h-2v2h2v-2zm0 4h-2v2h2v-2z"/></svg>
-            Organisation
+            Mon organisation
+          </button>
+          <button type="button" class="dropdown-item" id="menuProfileSettings">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
+            Paramètres
+          </button>
+          <button type="button" class="dropdown-item" id="menuSwitchOrg">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 7h11V5H7V2L2 6l5 4V7zm10 10H6v2h11v3l5-4-5-4v3z"/></svg>
+            Changer d'organisation
           </button>
           <button type="button" class="dropdown-item danger" id="menuLogout">
             <svg viewBox="0 0 24 24" fill="currentColor"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5zM4 5h8V3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h8v-2H4V5z"/></svg>
@@ -378,30 +660,73 @@
 
   <div class="modal" id="settingsModal">
     <div class="modal-content">
-      <h2>Organisation</h2>
-      <div id="settingsNoOrg">
-        <div class="section">
-          <label>Rejoindre une organisation</label>
-          <p class="msg">Entrez le code à 4 chiffres communiqué par votre PDG.</p>
-          <input type="text" id="joinCode" placeholder="Code (4 chiffres)" maxlength="4" pattern="[0-9]*" inputmode="numeric">
-          <button type="button" class="primary" id="btnJoinOrg">Rejoindre</button>
+      <h2>Paramètres</h2>
+      <div class="settings-tabs">
+        <button type="button" class="settings-tab active" id="tabGeneralSettings">Paramètres généraux</button>
+        <button type="button" class="settings-tab" id="tabOrgSettings">Organisations</button>
+      </div>
+      <section id="settingsGeneralSection" class="settings-section open">
+        <div class="settings-grid">
+          <div class="settings-card">
+            <h3>Langue</h3>
+            <div class="settings-row">
+              <select id="settingLanguage">
+                <option value="fr">Français</option>
+                <option value="en">English</option>
+              </select>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Apparence</h3>
+            <div class="settings-row">
+              <label><input type="checkbox" id="toggleDarkMode"> Mode sombre</label>
+            </div>
+            <div class="settings-row" style="margin-top:8px;">
+              <label><input type="checkbox" id="toggleGlass"> Effet glassmorphism</label>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Notifications</h3>
+            <div class="settings-row">
+              <label><input type="checkbox" id="toggleNotifications"> Notifications activées</label>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Préférences d’affichage</h3>
+            <div class="settings-row">
+              <label><input type="checkbox" id="toggleCompact"> Vue compacte</label>
+            </div>
+          </div>
+          <div class="settings-card">
+            <h3>Informations du compte</h3>
+            <div class="org-line">Email : <strong id="settingsAccountEmail">—</strong></div>
+            <div class="org-line">Contexte actif : <strong id="settingsActiveContext">—</strong></div>
+          </div>
+        </div>
+      </section>
+      <section id="settingsOrganizationsSection" class="settings-section">
+        <div class="settings-grid">
+          <div class="settings-card">
+          <h3>Organisations</h3>
+          <div class="settings-row">
+            <input type="text" id="createOrgName" placeholder="Nom de l'organisation">
+            <button type="button" class="primary" id="btnCreateOrg">Créer</button>
+          </div>
+          <div class="settings-row" style="margin-top:8px;">
+            <input type="text" id="joinCode" placeholder="Code d'invitation">
+            <button type="button" class="primary" id="btnJoinOrg">Rejoindre</button>
+          </div>
           <p class="msg error" id="joinError" style="display:none;"></p>
-        </div>
-        <div class="section">
-          <label>Créer une organisation</label>
-          <p class="msg">Vous serez PDG et recevrez un code à partager.</p>
-          <input type="text" id="createOrgName" placeholder="Nom de l'organisation">
-          <button type="button" class="primary" id="btnCreateOrg">Créer</button>
           <p class="msg error" id="createError" style="display:none;"></p>
-          <div class="code-display" id="createdCode" style="display:none;"></div>
+          <p class="msg" id="createdCode" style="display:none;"></p>
+          <div class="settings-row" style="margin-top:10px;">
+            <select id="orgSwitcherSelect"></select>
+            <button type="button" id="btnSwitchOrg">Changer d'organisation active</button>
+          </div>
+          <div class="org-list" id="orgList"></div>
         </div>
-      </div>
-      <div id="settingsHasOrg" style="display:none;">
-        <div class="section">
-          <p class="msg"><strong id="orgName"></strong></p>
-          <p class="msg" id="orgCodeLabel" style="display:none;">Code d'invitation à partager : <strong id="orgCode" class="code-display" style="display:inline;padding:4px 8px;"></strong></p>
         </div>
-      </div>
+      </section>
     </div>
   </div>
 
@@ -457,8 +782,9 @@
       </button>
       <button type="button" class="nav-item" id="navPartages" data-view="partages">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
-        Partagés avec moi
+        Mes organisations
       </button>
+      <div class="org-nav-list" id="orgNavList"></div>
       <button type="button" class="nav-item" id="navRecents" data-view="recents">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
         Récents
@@ -484,10 +810,12 @@
         <span id="mainTitleText">Accueil</span>
       </h1>
       <div class="toolbar">
+        <button type="button" id="btnBackFolder" style="display:none;">Retour au dossier parent</button>
         <button>Type</button>
         <button>Contacts</button>
         <button>Date de modification</button>
         <button>Source</button>
+        <button type="button" id="btnEmptyTrash" style="display:none;">Vider la corbeille</button>
         <button style="margin-left: auto;">Tri</button>
       </div>
       <div class="table-wrap">
@@ -505,7 +833,91 @@
           </tbody>
         </table>
       </div>
+      <section id="orgSettingsPage" class="org-page">
+        <div class="org-page-grid">
+          <article class="org-card">
+            <h3>Informations générales</h3>
+            <div class="org-line">Organisation : <strong id="orgPageName">—</strong></div>
+            <div class="org-line">Code d'invitation : <strong id="orgPageCode">—</strong> <button type="button" id="btnCopyOrgCode">Copier</button></div>
+            <div class="org-line">Mon rôle : <span class="role-badge" id="orgPageRole">—</span></div>
+            <div class="org-actions-row">
+              <input type="text" id="orgRenameInput" placeholder="Nouveau nom">
+              <button type="button" id="btnOrgRename">Renommer</button>
+            </div>
+          </article>
+          <article class="org-card">
+            <h3>Paramètres de l’organisation</h3>
+            <div class="org-line">Membres total : <strong id="orgPageMembersCount">0</strong></div>
+            <div class="org-actions-row">
+              <button type="button" id="btnLeaveOrg">Quitter l’organisation</button>
+              <button type="button" class="danger" id="btnDeleteOrg">Supprimer l’organisation</button>
+            </div>
+          </article>
+        </div>
+        <article class="org-card" style="margin-top:14px;">
+          <h3>Membres</h3>
+          <table class="members-table">
+            <thead>
+              <tr>
+                <th>Membre</th>
+                <th>Rôle</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="orgMembersTableBody"></tbody>
+          </table>
+        </article>
+      </section>
     </main>
+  </div>
+
+  <div id="driveContextMenu" class="context-menu">
+    <button type="button" id="ctxOpenItem" class="hidden">Ouvrir</button>
+    <button type="button" id="ctxRenameItem" class="hidden">Renommer</button>
+    <button type="button" id="ctxMoveFile" class="hidden">Déplacer</button>
+    <button type="button" id="ctxPutFileInFolder" class="hidden">Mettre dans un dossier</button>
+    <button type="button" id="ctxToggleProtection" class="hidden">Ajouter un mot de passe</button>
+    <button type="button" id="ctxDeleteItem" class="hidden">Supprimer</button>
+    <div id="ctxItemSeparator" class="separator hidden"></div>
+    <button type="button" id="ctxCreateFolder">Créer un dossier</button>
+    <button type="button" id="ctxImportFile">Importer un fichier</button>
+    <button type="button" id="ctxImportFolder">Importer un dossier</button>
+    <button type="button" id="ctxRefresh">Actualiser</button>
+  </div>
+
+  <div class="modal" id="itemPasswordModal">
+    <div class="modal-content" style="max-width:460px;">
+      <h2 id="itemPasswordTitle">Protection par mot de passe</h2>
+      <div class="section">
+        <label id="itemPasswordLabel1" for="itemPasswordInput1">Mot de passe</label>
+        <input type="password" id="itemPasswordInput1" autocomplete="off">
+      </div>
+      <div class="section" id="itemPasswordSecondRow">
+        <label id="itemPasswordLabel2" for="itemPasswordInput2">Confirmer le mot de passe</label>
+        <input type="password" id="itemPasswordInput2" autocomplete="off">
+      </div>
+      <p class="msg error" id="itemPasswordError" style="display:none;"></p>
+      <p class="msg" id="itemPasswordSuccess" style="display:none;"></p>
+      <div class="settings-row" style="justify-content:flex-end; margin-top:10px;">
+        <button type="button" id="itemPasswordCancel">Annuler</button>
+        <button type="button" class="primary" id="itemPasswordConfirm">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal" id="moveFileModal">
+    <div class="modal-content" style="max-width:520px;">
+      <h2 id="moveFileTitle">Déplacer le fichier</h2>
+      <div class="section">
+        <label id="moveFileLabel" for="moveDestinationFolderSelect">Destination</label>
+        <select id="moveDestinationFolderSelect" style="width:100%; margin-top:6px;"></select>
+      </div>
+      <p class="msg error" id="moveFileError" style="display:none;"></p>
+      <div class="settings-row" style="justify-content:flex-end; margin-top:10px;">
+        <button type="button" id="moveFileCancel">Annuler</button>
+        <button type="button" class="primary" id="moveFileConfirm">Déplacer</button>
+      </div>
+    </div>
   </div>
 
   <script src="script.js"></script>
