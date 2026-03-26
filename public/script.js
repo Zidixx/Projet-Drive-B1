@@ -58,6 +58,7 @@
   let backendFiles = [];
   let backendTrashFiles = [];
   let backendStorage = null;
+  let totalStorage = null;
   let activeFolderId = null;
   let protectedItems = {};
   let contextMenuTarget = null;
@@ -214,6 +215,28 @@
     renderSettingsOrganizations();
   }
 
+  /** Si le contexte local dit « org X » mais le JWT n’est pas encore aligné, l’API renvoie vide et isBackendContext() est faux → liste vide sans message. On aligne le token avant loadBackendData. */
+  async function ensureOrgSync() {
+    if (activeContext === 'personal') return;
+    if (!orgMemberships.some((o) => String(o.id) === String(activeContext))) return;
+    if (String(currentUser.org_id || '') === String(activeContext)) return;
+    const id = parseInt(String(activeContext), 10);
+    if (!id || Number.isNaN(id)) return;
+    try {
+      const res = await api('/organizations/switch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orgId: id }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.token) return;
+      updateToken(data.token);
+      await loadMe();
+    } catch (e) {
+      console.warn('ensureOrgSync', e);
+    }
+  }
+
   function hydrateMembershipsFromUser() {
     const rawCtx = localStorage.getItem(LS_CONTEXT_DATA);
     contextData = rawCtx ? JSON.parse(rawCtx) : {};
@@ -293,16 +316,18 @@
   async function loadBackendData() {
     try {
       const scope = String(activeContext) === 'personal' ? 'personal' : 'org';
-      const [foldersRes, filesRes, trashRes, storageRes] = await Promise.all([
+      const [foldersRes, filesRes, trashRes, storageRes, totalStorageRes] = await Promise.all([
         api('/folders?scope=' + encodeURIComponent(scope)),
         api('/api/files?scope=' + encodeURIComponent(scope)),
         api('/api/files?trash=1&scope=' + encodeURIComponent(scope)),
         api('/api/storage?scope=' + encodeURIComponent(scope)),
+        api('/api/storage?scope=all'),
       ]);
       backendFolders = foldersRes.ok ? (await foldersRes.json()).folders || [] : [];
       backendFiles = filesRes.ok ? (await filesRes.json()).files || [] : [];
       backendTrashFiles = trashRes.ok ? (await trashRes.json()).files || [] : [];
       backendStorage = storageRes.ok ? await storageRes.json() : null;
+      totalStorage = totalStorageRes.ok ? await totalStorageRes.json() : null;
     } catch (e) {
       backendFolders = [];
       backendFiles = [];
@@ -314,12 +339,12 @@
   function renderStorage() {
     const bar = document.getElementById('storageBarInner');
     const text = document.getElementById('storageText');
-    if (isBackendContext() && backendStorage) {
-      const used = backendStorage.usedBytes || 0;
-      const limit = backendStorage.limitBytes || 15 * 1024 * 1024 * 1024;
+    if (totalStorage) {
+      const used = totalStorage.usedBytes || 0;
+      const limit = totalStorage.limitBytes || 15 * 1024 * 1024 * 1024;
       const pct = limit > 0 ? Math.min(100, (used / limit) * 100) : 0;
       if (bar) bar.style.width = pct + '%';
-      if (text) text.textContent = (backendStorage.usedFormatted || '0 Mo') + ' utilisés sur ' + (backendStorage.limitFormatted || '15 Go');
+      if (text) text.textContent = (totalStorage.usedFormatted || '0 o') + ' utilisés sur ' + (totalStorage.limitFormatted || '15 Go');
       return;
     }
     const ctx = getCurrentData();
@@ -410,9 +435,11 @@
 
   function renderList() {
     const tbody = document.getElementById('filesTable');
+    if (!tbody) return;
     const emptyRow = tbody.querySelector('.empty-row');
     const emptyMessage = document.getElementById('emptyMessage');
     const emptyHint = document.getElementById('emptyHint');
+    if (!emptyRow) return;
     const collections = getDisplayCollections();
     const emptyBtn = document.getElementById('btnEmptyTrash');
     if (emptyBtn) {
@@ -426,8 +453,8 @@
     let filesToShow = [];
     if (currentView === 'corbeille') {
       filesToShow = collections.trash;
-      emptyMessage.textContent = 'Aucun fichier dans la corbeille.';
-      emptyHint.textContent = 'Les fichiers supprimés apparaissent ici.';
+      if (emptyMessage) emptyMessage.textContent = 'Aucun fichier dans la corbeille.';
+      if (emptyHint) emptyHint.textContent = 'Les fichiers supprimés apparaissent ici.';
     } else if (currentView === 'recents') {
       const combined = [
         ...collections.folders.map((f) => ({ ...f, _type: 'folder', _date: f.created_at })),
@@ -435,25 +462,25 @@
       ].sort((a, b) => new Date(b._date || 0) - new Date(a._date || 0)).slice(0, 25);
       foldersToShow = combined.filter((x) => x._type === 'folder');
       filesToShow = combined.filter((x) => x._type === 'file');
-      emptyMessage.textContent = 'Aucun élément récent.';
-      emptyHint.textContent = 'Vos dernières activités apparaissent ici.';
+      if (emptyMessage) emptyMessage.textContent = 'Aucun élément récent.';
+      if (emptyHint) emptyHint.textContent = 'Vos dernières activités apparaissent ici.';
     } else if (currentView === 'partages') {
       foldersToShow = orgMemberships.map((o) => ({ id: o.id, name: o.name, created_at: nowIso(), type: 'org-entry' }));
-      emptyMessage.textContent = 'Aucune organisation.';
-      emptyHint.textContent = 'Créez ou rejoignez une organisation dans Paramètres.';
+      if (emptyMessage) emptyMessage.textContent = 'Aucune organisation.';
+      if (emptyHint) emptyHint.textContent = 'Créez ou rejoignez une organisation dans Paramètres.';
     } else {
       foldersToShow = collections.folders;
       filesToShow = collections.files;
-      emptyMessage.textContent = 'Aucun fichier ni dossier.';
-      emptyHint.textContent = 'Cliquez sur « NOUVEAU » pour ajouter un dossier ou importer des fichiers.';
+      if (emptyMessage) emptyMessage.textContent = 'Aucun fichier ni dossier.';
+      if (emptyHint) emptyHint.textContent = 'Cliquez sur « NOUVEAU » pour ajouter un dossier ou importer des fichiers.';
     }
 
     if (activeFolderId && currentView === 'mon-drive') {
       foldersToShow = [];
       filesToShow = filesToShow.filter((f) => String(f.folder_id || '') === String(activeFolderId));
       const opened = (collections.folders || []).find((f) => String(f.id) === String(activeFolderId));
-      emptyMessage.textContent = opened ? 'Ce dossier est vide.' : 'Dossier introuvable.';
-      emptyHint.textContent = opened ? 'Importez des fichiers dans ce dossier.' : 'Revenez au niveau racine.';
+      if (emptyMessage) emptyMessage.textContent = opened ? 'Ce dossier est vide.' : 'Dossier introuvable.';
+      if (emptyHint) emptyHint.textContent = opened ? 'Importez des fichiers dans ce dossier.' : 'Revenez au niveau racine.';
     }
 
     tbody.querySelectorAll('.file-row').forEach((r) => r.remove());
@@ -1411,10 +1438,12 @@
       uploadInput.click();
     });
     uploadInput.addEventListener('change', async () => {
-      const file = uploadInput.files[0];
+      const files = Array.from(uploadInput.files);
       uploadInput.value = '';
-      if (!file) return;
-      await importSingleFile(file);
+      if (!files.length) return;
+      for (const file of files) {
+        await importSingleFile(file);
+      }
     });
     document.getElementById('menuImporterDossier').addEventListener('click', () => {
       closeNouveauDropdown();
@@ -1821,6 +1850,7 @@
     setTheme(savedTheme === 'dark' ? 'dark' : 'light');
     loadProtectionState();
     await loadMe();
+    await ensureOrgSync();
     await loadBackendData();
     bindEvents();
     renderOrgSidebar();

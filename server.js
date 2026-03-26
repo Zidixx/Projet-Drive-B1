@@ -110,9 +110,10 @@ app.post('/api/upload', auth.requireAuth, storage.upload.single('file'), async (
       folder_id = parsedFolderId;
     }
     if (!ownerSpace) {
-      // Compat : si la req ne précise pas, on déduit du contexte org_id.
       ownerSpace = req.user.org_id ? 'organization' : 'personal';
-      org_id = ownerSpace === 'organization' ? req.user.org_id : null;
+    }
+    if (ownerSpace === 'organization' && org_id == null) {
+      org_id = req.user.org_id || null;
     }
     await pool.query(
       `INSERT INTO files (original_name, stored_name, size, uploaded_by, org_id, folder_id, owner_space)
@@ -658,7 +659,23 @@ app.get('/api/storage', auth.requireAuth, async (req, res) => {
     const limitBytes = 15 * 1024 * 1024 * 1024; // 15 Go
     const scope = req.query && req.query.scope ? String(req.query.scope) : null;
     let result;
-    if (scope === 'personal') {
+    if (scope === 'all') {
+      const orgs = await pool.query(
+        'SELECT org_id FROM user_organization_memberships WHERE user_id = $1',
+        [req.user.id]
+      );
+      const orgIds = orgs.rows.map((r) => r.org_id);
+      const safeOrgIds = orgIds.length ? orgIds : [-1];
+      result = await pool.query(
+        `SELECT COALESCE(SUM(size), 0)::BIGINT AS used FROM files
+         WHERE deleted_at IS NULL
+         AND (
+           (owner_space = 'personal' AND uploaded_by = $1)
+           OR (owner_space = 'organization' AND org_id = ANY($2::int[]))
+         )`,
+        [req.user.id, safeOrgIds]
+      );
+    } else if (scope === 'personal') {
       result = await pool.query(
         'SELECT COALESCE(SUM(size), 0)::BIGINT AS used FROM files WHERE owner_space = \'personal\' AND uploaded_by = $1 AND deleted_at IS NULL',
         [req.user.id]
