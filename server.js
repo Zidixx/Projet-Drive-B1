@@ -6,6 +6,7 @@ require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
+const https = require('https');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { pool } = require('./db');
@@ -1019,10 +1020,24 @@ app.use((err, req, res, next) => {
 
 // Démarrage : connexion DB puis écoute
 connectDb().then(() => {
-  app.listen(PORT, () => {
-    console.log(`Serveur sur http://localhost:${PORT}`);
-    console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
-  });
+  const certPath = path.join(__dirname, 'certs', 'cert.pem');
+  const keyPath = path.join(__dirname, 'certs', 'key.pem');
+
+  if (fs.existsSync(certPath) && fs.existsSync(keyPath)) {
+    const sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath),
+    };
+    https.createServer(sslOptions, app).listen(PORT, '0.0.0.0', () => {
+      console.log(`Serveur HTTPS sur https://macbook-pro-de-nathan.taile938fe.ts.net:${PORT}`);
+      console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } else {
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`Serveur HTTP sur http://localhost:${PORT}`);
+      console.log(`Environnement: ${process.env.NODE_ENV || 'development'}`);
+    });
+  }
 });
 
 module.exports = app;
